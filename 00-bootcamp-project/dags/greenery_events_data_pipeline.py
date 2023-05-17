@@ -1,34 +1,48 @@
+import csv
+
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.utils import timezone
+
 import requests
-import csv
+
+
 # Import modules regarding GCP service account, BigQuery, and GCS 
 # Your code here
-API_URL = "http://34.87.139.82:8000/"
 
-def _extract_data():
-    ds = "2021-02-11"
-    response = requests.get(f"{API_URL}events/?created_at={ds}")
+
+def _extract_data(ds):
+    url = f"http://34.87.139.82:8000/events/?created_at={ds}"
+    response = requests.get(url)
     data = response.json()
-    for item in data:
-        print(item)    
-    with open(f"/events.csv", "w") as f:
+
+    with open(f"/opt/airflow/dags/events-{ds}.csv", "w") as f:
         writer = csv.writer(f)
-        header = data[0].keys()
+        header = [
+            "event_id",
+            "session_id",
+            "page_url",
+            "created_at",
+            "event_type",
+            "user",
+            "order",
+            "product",
+        ]
         writer.writerow(header)
-        
         for each in data:
-            result = [
-                each[''],
-                each[''],
-                each[''],
-                each[''],
-                each[''],
-                each[''],
-                each[''],
-                each['']
+            # print(each["event_id"], each["event_type"])
+            data = [
+                each["event_id"],
+                each["session_id"],
+                each["page_url"],
+                each["created_at"],
+                each["event_type"],
+                each["user"],
+                each["order"],
+                each["product"]
             ]
+            writer.writerow(data)
+
 
 def _load_data_to_gcs():
     # Your code below
@@ -56,6 +70,7 @@ with DAG(
     extract_data = PythonOperator(
         task_id="extract_data",
         python_callable=_extract_data,
+        op_kwargs={"ds": "{{ ds }}"},
     )
 
     # Load data to GCS
