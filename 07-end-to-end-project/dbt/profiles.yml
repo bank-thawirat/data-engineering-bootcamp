@@ -1,0 +1,21 @@
+networkrail:
+  target: dbt_bank
+
+  outputs:
+    dbt_bank:
+      type: bigquery
+      method: service-account
+      project: data-engineer-384509
+      dataset: dbt_bank
+      threads: 1
+      keyfile: /workspaces/data-engineering-bootcamp/07-end-to-end-project/dbt/key-gcr.json
+      location: asia-southeast1
+
+    prod:
+      type: bigquery
+      method: service-account
+      project: data-engineer-384509
+      dataset: networkrail
+      threads: 1
+      keyfile: /workspaces/data-engineering-bootcamp/07-end-to-end-project/dbt/key-gcr.json
+      location: asia-southeast1
